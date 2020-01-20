@@ -3,15 +3,41 @@ name: .NET Core
 on: [push]
 
 jobs:
-  build:
-
+  linux:
     runs-on: ubuntu-latest
-
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.101
+      - name: Test
+        run: dotnet test
+      - name: Build
+        run: dotnet build --configuration Release
+        
+  windows:
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.101
-    - name: Build with dotnet
+    - name: Test
+      run: dotnet test
+    - name: Build
       run: dotnet build --configuration Release
+
+  mac:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.101
+      - name: Test
+        run: dotnet test
+      - name: Build
+        run: dotnet build --configuration Release
