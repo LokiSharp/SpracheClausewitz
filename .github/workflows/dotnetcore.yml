@@ -4,14 +4,20 @@ on: [push]
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    name: Build on ${{ matrix.os }} with .NET Core ${{ matrix.dotnet }}
+    strategy:
+      matrix:
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        dotnet: [ 3.1.100 ]
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v1
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.101
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+      - name: Test
+        run: dotnet test
+      - name: Build
+        run: dotnet build --configuration Release
