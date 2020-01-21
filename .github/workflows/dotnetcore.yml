@@ -3,21 +3,32 @@ name: .NET Core
 on: [push]
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os }} with .NET Core ${{ matrix.dotnet }}
+  Test:
+    name: Test on ${{ matrix.os }} with .Net Core ${{ matrix.dotnet }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest ]
-        dotnet: [ 3.1.100 ]
-    runs-on: ${{ matrix.os }}
+        dotnet: [ 3.1.100, 3.1.101 ]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ matrix.dotnet }}
+
       - name: Test
         run: dotnet test
+
       - name: Build
+
         run: dotnet build --configuration Release
+
+      - name: Update Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: SpracheDemo-${{ matrix.os }}-${{ matrix.dotnet }}
+          path: SpracheDemo.Dsl/bin/Release/netcoreapp3.1
