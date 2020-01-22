@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Sprache;
 
@@ -7,22 +8,23 @@ namespace Clausewitz.Dsl
     public static class ClausewitzParser
     {
         private static readonly Parser<char> DoubleQuote = Parse.Char('"');
-        private static readonly Parser<string> Space = Parse.WhiteSpace.Except(Parse.LineEnd).Many().Text();
+        private static readonly Parser<string> Space = Parse.WhiteSpace.Many().Text();
         private static readonly Parser<char> BlockStart = Parse.Char('{');
         private static readonly Parser<char> BlockEnd = Parse.Char('}');
+        private static readonly Parser<string> LineBack = Parse.Char('\n').Or(Parse.Char('\t')).Many().Text();
 
         private static readonly Parser<string> Symbol =
             Parse.Identifier(Parse.Letter, Parse.LetterOrDigit.Or(Parse.Char('_')));
 
-        public static readonly Parser<string> Operator =
-            Parse.String("<>")
-                .Or(Parse.String("<="))
-                .Or(Parse.String(">="))
-                .Or(Parse.String("<"))
-                .Or(Parse.String(">"))
-                .Or(Parse.String("=")).Text();
+        public static readonly Parser<OperatorType> Operator =
+            Parse.String("<>").Return(OperatorType.InEqual)
+                .Or(Parse.String("<=").Return(OperatorType.LessThanOrEqual))
+                .Or(Parse.String(">=").Return(OperatorType.GreaterThanOrEqual))
+                .Or(Parse.String("<").Return(OperatorType.LessThan))
+                .Or(Parse.String(">").Return(OperatorType.GreaterThan))
+                .Or(Parse.String("=").Return(OperatorType.Equal));
 
-        public static readonly Parser<string> Comment =
+        public static readonly Parser<object> Comment =
             from op in Parse.String("#")
             from space in Space.Optional()
             from comment in Parse.CharExcept('\n').Many().Text()
@@ -54,20 +56,34 @@ namespace Clausewitz.Dsl
             from d in Parse.Number
             select (object) DateTime.Parse($"{y}-{m}-{d}");
 
-        public static readonly Parser<object> Assignment =
+        public static readonly Parser<Tuple<string, OperatorType, object>> Assignment =
             from name in Symbol
-            from s1 in Space.Optional()
+            from lb in LineBack.Optional()
+            from leading in Space.Optional()
             from op in Operator
-            from s2 in Space.Optional()
-            from value in List.Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol)
-            select new Tuple<object, object, object>(name, op, value);
+            from trailing in Space.Optional()
+            from value in Map.Or(List).Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol)
+            from lb2 in LineBack.Optional()
+            select new Tuple<string, OperatorType, object>(name, op, value);
+
+        public static readonly Parser<object> Map =
+            from bs in BlockStart
+            from lb1 in LineBack.Optional()
+            from leading in Space.Optional()
+            from values in Assignment.Many()
+            from trailing in Space.Optional()
+            from lb2 in LineBack.Optional()
+            from be in BlockEnd
+            select values.ToDictionary(x=> x.Item1, x => x.Item3);
 
         public static readonly Parser<object> List =
             from bs in BlockStart
+            from lb1 in LineBack.Optional()
             from leading in Space.Optional()
-            from values in Parse.Ref(() => List.Or(Assignment).Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol))
+            from values in Parse.Ref(() => List.Or(Map).Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol))
                 .DelimitedBy(Space)
             from trailing in Space.Optional()
+            from lb2 in LineBack.Optional()
             from be in BlockEnd
             select values.ToList();
     }

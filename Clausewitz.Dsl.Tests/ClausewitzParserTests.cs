@@ -11,8 +11,30 @@ namespace Clausewitz.Dsl.Tests
         [Test]
         public void AnIdentifierIsAAssignment()
         {
-            var input = @"happened = { prestige = 100 legitimacy = 100 stability = 3 }";
-            var parsed = ClausewitzParser.Assignment.End().Parse(input);
+            var input = @"sub_units = {
+	amphibious_armor = {
+		sprite = amphibious_armor
+		map_icon_category = armored
+		priority = 2501
+		ai_priority = 2000
+		active = yes
+		special_forces = yes
+		marines = yes
+		type = {
+			armor
+		}
+		
+		group = armor
+		
+		categories = {
+			category_tanks
+			category_front_line
+			category_all_armor
+			category_army
+		}
+	}
+}";
+            var parsed = (Tuple<string, OperatorType, object>) ClausewitzParser.Assignment.End().Parse(input);
             Assert.AreEqual("Hello", parsed);
         }
 
@@ -52,12 +74,12 @@ namespace Clausewitz.Dsl.Tests
         public void AnIdentifierIsAOperator()
         {
             var parser = ClausewitzParser.Operator.End();
-            Assert.AreEqual("<>", parser.Parse("<>"));
-            Assert.AreEqual("<=", parser.Parse("<="));
-            Assert.AreEqual(">=", parser.Parse(">="));
-            Assert.AreEqual("<", parser.Parse("<"));
-            Assert.AreEqual(">", parser.Parse(">"));
-            Assert.AreEqual("=", parser.Parse("="));
+            Assert.AreEqual(OperatorType.InEqual, parser.Parse("<>"));
+            Assert.AreEqual(OperatorType.LessThanOrEqual, parser.Parse("<="));
+            Assert.AreEqual(OperatorType.GreaterThanOrEqual, parser.Parse(">="));
+            Assert.AreEqual(OperatorType.LessThan, parser.Parse("<"));
+            Assert.AreEqual(OperatorType.GreaterThan, parser.Parse(">"));
+            Assert.AreEqual(OperatorType.Equal, parser.Parse("="));
         }
 
         [Test]
