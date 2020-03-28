@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Clausewitz.Dsl.SyntaxTree;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sprache;
 
@@ -39,14 +40,6 @@ namespace Clausewitz.Dsl.Tests
         }
 
         [TestMethod]
-        public void ParsedIsComment()
-        {
-            var input = "# Hello";
-            var parsed = ClausewitzParser.Comment.End().Parse(input);
-            Assert.AreEqual("Hello", parsed);
-        }
-
-        [TestMethod]
         public void ParsedIsDate()
         {
             var input = "1444.11.11";
@@ -65,12 +58,21 @@ namespace Clausewitz.Dsl.Tests
         [TestMethod]
         public void ParsedIsList()
         {
-            var input = @"{ 1 1% 1.1 1444.11.11 
+	        var input = @"{
+	1
+	1%
+	1.1 
+	1444.11.11 
 	{ 
 		2 
+
 		2% 
+
 		2.1 
+		
 		1444.11.11 
+
+		
 		abc_def 
 	} 
 }";
@@ -78,6 +80,22 @@ namespace Clausewitz.Dsl.Tests
             Assert.AreEqual(1, parsed[0]);
         }
 
+        [TestMethod]
+        public void ParsedIsMap()
+        {
+	        var input = @"{
+	sprite = amphibious_armor
+	map_icon_category = armored
+	priority = 2501
+	ai_priority = 2000
+	active = yes
+	special_forces = yes
+	marines = yes
+}";
+	        var parsed = (Dictionary<string, object>) ClausewitzParser.Map.End().Parse(input);
+	        Assert.AreEqual("amphibious_armor", parsed["sprite"]);
+        }
+        
         [TestMethod]
         public void ParsedIsOperator()
         {

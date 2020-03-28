@@ -1,4 +1,4 @@
-﻿namespace Clausewitz.Dsl
+﻿namespace Clausewitz.Dsl.SyntaxTree
 {
     public enum OperatorType
     {

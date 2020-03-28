@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Clausewitz.Dsl.SyntaxTree;
 using Sprache;
 
 namespace Clausewitz.Dsl
@@ -10,7 +11,7 @@ namespace Clausewitz.Dsl
         private static readonly Parser<string> Space = Parse.WhiteSpace.Many().Text();
         private static readonly Parser<char> BlockStart = Parse.Char('{');
         private static readonly Parser<char> BlockEnd = Parse.Char('}');
-        private static readonly Parser<string> LineBack = Parse.Char('\n').Or(Parse.Char('\t')).Many().Text();
+        private static readonly Parser<string> Tabs = Parse.Char('\t').Many().Text();
 
         private static readonly Parser<string> Symbol =
             Parse.Identifier(Parse.Letter, Parse.LetterOrDigit.Or(Parse.Char('_')));
@@ -56,33 +57,34 @@ namespace Clausewitz.Dsl
             select (object) DateTime.Parse($"{y}-{m}-{d}");
 
         public static readonly Parser<Tuple<string, OperatorType, object>> Assignment =
+            from lt1 in Parse.LineEnd.Optional()
+            from tb1 in Tabs.Optional()
             from name in Symbol
-            from lb in LineBack.Optional()
             from leading in Space.Optional()
             from op in Operator
             from trailing in Space.Optional()
             from value in Map.Or(List).Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol)
-            from lb2 in LineBack.Optional()
+            from lt2 in Parse.LineEnd.Optional()
+            from tb2 in Tabs.Optional()
             select new Tuple<string, OperatorType, object>(name, op, value);
 
         public static readonly Parser<object> Map =
             from bs in BlockStart
-            from lb1 in LineBack.Optional()
+            from le1 in Parse.LineEnd.Optional()
             from leading in Space.Optional()
             from values in Assignment.Many()
             from trailing in Space.Optional()
-            from lb2 in LineBack.Optional()
+            from le2 in Parse.LineEnd.Optional()
             from be in BlockEnd
             select values.ToDictionary(x=> x.Item1, x => x.Item3);
 
         public static readonly Parser<object> List =
             from bs in BlockStart
-            from lb1 in LineBack.Optional()
             from leading in Space.Optional()
             from values in Parse.Ref(() => List.Or(Map).Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol))
                 .DelimitedBy(Space)
             from trailing in Space.Optional()
-            from lb2 in LineBack.Optional()
+            from lt in Parse.LineEnd.Optional()
             from be in BlockEnd
             select values.ToList();
     }
