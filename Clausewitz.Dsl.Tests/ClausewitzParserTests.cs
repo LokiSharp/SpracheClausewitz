@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sprache;
 
 namespace Clausewitz.Dsl.Tests
 {
-    [TestFixture]
+    [TestClass]
     public class ClausewitzParserTests
     {
-        [Test]
-        public void AnIdentifierIsAAssignment()
+        [TestMethod]
+        public void ParsedIsAssignment()
         {
             var input = @"sub_units = {
 	amphibious_armor = {
@@ -34,44 +34,52 @@ namespace Clausewitz.Dsl.Tests
 		}
 	}
 }";
-            var parsed = (Tuple<string, OperatorType, object>) ClausewitzParser.Assignment.End().Parse(input);
+            var parsed = ClausewitzParser.Assignment.End().Parse(input);
             Assert.AreEqual("Hello", parsed);
         }
 
-        [Test]
-        public void AnIdentifierIsAComment()
+        [TestMethod]
+        public void ParsedIsComment()
         {
             var input = "# Hello";
             var parsed = ClausewitzParser.Comment.End().Parse(input);
             Assert.AreEqual("Hello", parsed);
         }
 
-        [Test]
-        public void AnIdentifierIsADate()
+        [TestMethod]
+        public void ParsedIsDate()
         {
             var input = "1444.11.11";
             var parsed = ClausewitzParser.Date.End().Parse(input);
             Assert.AreEqual(DateTime.Parse("1444-11-11"), parsed);
         }
 
-        [Test]
-        public void AnIdentifierIsAInteger()
+        [TestMethod]
+        public void ParsedIsInteger()
         {
             var input = "1";
             var parsed = ClausewitzParser.Integer.End().Parse(input);
             Assert.AreEqual(1, parsed);
         }
 
-        [Test]
-        public void AnIdentifierIsAList()
+        [TestMethod]
+        public void ParsedIsList()
         {
-            var input = "{ 1 1% 1.1 1444.11.11 { 2 2% 2.1 1444.11.11 abc_def } }";
+            var input = @"{ 1 1% 1.1 1444.11.11 
+	{ 
+		2 
+		2% 
+		2.1 
+		1444.11.11 
+		abc_def 
+	} 
+}";
             var parsed = (List<object>) ClausewitzParser.List.End().Parse(input);
             Assert.AreEqual(1, parsed[0]);
         }
 
-        [Test]
-        public void AnIdentifierIsAOperator()
+        [TestMethod]
+        public void ParsedIsOperator()
         {
             var parser = ClausewitzParser.Operator.End();
             Assert.AreEqual(OperatorType.InEqual, parser.Parse("<>"));
@@ -82,16 +90,16 @@ namespace Clausewitz.Dsl.Tests
             Assert.AreEqual(OperatorType.Equal, parser.Parse("="));
         }
 
-        [Test]
-        public void AnIdentifierIsAPercent()
+        [TestMethod]
+        public void ParsedIsPercent()
         {
             var input = "1%";
             var parsed = ClausewitzParser.Percent.End().Parse(input);
             Assert.AreEqual(0.01, parsed);
         }
 
-        [Test]
-        public void AnIdentifierIsAReal()
+        [TestMethod]
+        public void ParsedIsReal()
         {
             var input = "1.1";
             var parsed = ClausewitzParser.Real.End().Parse(input);

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Sprache;
 
@@ -33,7 +32,7 @@ namespace Clausewitz.Dsl
         public static readonly Parser<object> Integer =
             from op in Parse.Char('-').Optional()
             from num in Parse.Number
-            select (object) (long.Parse(num) * (op.IsDefined ? -1 : 1));
+            select (object) (int.Parse(num) * (op.IsDefined ? -1 : 1));
 
         public static readonly Parser<object> Percent =
             from op in Parse.Char('-').Optional()
