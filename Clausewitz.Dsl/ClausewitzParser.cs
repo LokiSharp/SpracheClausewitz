@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Clausewitz.Dsl.SyntaxTree;
 using Sprache;
@@ -13,8 +14,15 @@ namespace Clausewitz.Dsl
         private static readonly Parser<char> BlockEnd = Parse.Char('}');
         private static readonly Parser<string> Tabs = Parse.Char('\t').Many().Text();
 
-        private static readonly Parser<string> Symbol =
-            Parse.Identifier(Parse.Letter, Parse.LetterOrDigit.Or(Parse.Char('_')));
+        private static readonly Parser<string> LineEndAndTabs =
+            from d in Space.Optional()
+            from le in Parse.LineEnd.Optional()
+            from tabs in Tabs.Optional()
+            select "";
+
+        private static readonly Parser<ClausewitzLiteral> Symbol =
+            from symbol in Parse.Identifier(Parse.Letter, Parse.LetterOrDigit.Or(Parse.Char('_')))
+            select new ClausewitzLiteral(symbol, LiteralType.Symbol);
 
         public static readonly Parser<OperatorType> Operator =
             Parse.String("<>").Return(OperatorType.InEqual)
@@ -30,33 +38,37 @@ namespace Clausewitz.Dsl
             from comment in Parse.CharExcept('\n').Many().Text()
             select comment;
 
-        public static readonly Parser<object> Integer =
-            from op in Parse.Char('-').Optional()
-            from num in Parse.Number
-            select (object) (int.Parse(num) * (op.IsDefined ? -1 : 1));
+        public static readonly Parser<ClausewitzLiteral> Integer =
+            from minus in Parse.String("-").Text().Optional()
+            from digits in Parse.Digit.Many().Text()
+            select new ClausewitzLiteral((minus.IsDefined ? minus.Get() : "") + digits, LiteralType.Integer);
 
-        public static readonly Parser<object> Percent =
-            from op in Parse.Char('-').Optional()
-            from num in Parse.Number
+        public static readonly Parser<ClausewitzLiteral> Percent =
+            from minus in Parse.String("-").Text().Optional()
+            from digits in Parse.Digit.Many().Text()
             from pct in Parse.Char('%')
-            select (object) (double.Parse(num) / 100 * (op.IsDefined ? -1 : 1));
+            select new ClausewitzLiteral((minus.IsDefined ? minus.Get() : "") + digits, LiteralType.Percent);
 
-        public static readonly Parser<object> Real =
-            from op in Parse.Char('-').Optional()
-            from n in Parse.Number
+        public static readonly Parser<ClausewitzLiteral> Real =
+            from minus in Parse.String("-").Text().Optional()
+            from integers in Parse.Digit.Many().Text()
             from dot in Parse.Char('.')
-            from f in Parse.Number
-            select (object) (double.Parse($"{n}.{f}") * (op.IsDefined ? -1 : 1));
+            from decimals in Parse.Digit.Many().Text()
+            select new ClausewitzLiteral((minus.IsDefined ? minus.Get() : "") + $"{integers}.{decimals}",
+                LiteralType.Real);
 
-        public static readonly Parser<object> Date =
-            from y in Parse.Number
-            from yDot in Parse.Char('.')
-            from m in Parse.Number
-            from dDot in Parse.Char('.')
-            from d in Parse.Number
-            select (object) DateTime.Parse($"{y}-{m}-{d}");
+        public static readonly Parser<ClausewitzLiteral> Date =
+            from year in Parse.Number
+            from aDot in Parse.Char('.')
+            from month in Parse.Number
+            from bDot in Parse.Char('.')
+            from day in Parse.Number
+            select new ClausewitzLiteral($"{year}-{month}-{day}", LiteralType.Date);
 
-        public static readonly Parser<Tuple<string, OperatorType, object>> Assignment =
+        public static readonly Parser<ClausewitzLiteral> ClausewitzLiteral =
+            Symbol.Or(Integer).Or(Percent).Or(Date).Or(Real);
+
+        public static readonly Parser<Tuple<ClausewitzLiteral, OperatorType, IClausewitzValue>> Assignment =
             from lt1 in Parse.LineEnd.Optional()
             from tb1 in Tabs.Optional()
             from name in Symbol
@@ -66,26 +78,46 @@ namespace Clausewitz.Dsl
             from value in Map.Or(List).Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol)
             from lt2 in Parse.LineEnd.Optional()
             from tb2 in Tabs.Optional()
-            select new Tuple<string, OperatorType, object>(name, op, value);
+            select new Tuple<ClausewitzLiteral, OperatorType, IClausewitzValue>(name, op, value);
 
-        public static readonly Parser<object> Map =
+
+        public static readonly Parser<KeyValuePair<string, IClausewitzValue>> ClausewitzPair =
+            from name in Symbol
+            from leading in Space.Optional()
+            from colon in Parse.Char('=').Token()
+            from trailing in Space.Optional()
+            from val in ClausewitzValue
+            select new KeyValuePair<string, IClausewitzValue>(name.Value, val);
+
+        public static readonly Parser<IEnumerable<KeyValuePair<string, IClausewitzValue>>> ClausewitzMembers =
+            ClausewitzPair.DelimitedBy(LineEndAndTabs);
+
+        public static readonly Parser<ClausewitzMap> Map =
             from bs in BlockStart
             from le1 in Parse.LineEnd.Optional()
             from leading in Space.Optional()
-            from values in Assignment.Many()
+            from values in ClausewitzMembers
             from trailing in Space.Optional()
             from le2 in Parse.LineEnd.Optional()
             from be in BlockEnd
-            select values.ToDictionary(x=> x.Item1, x => x.Item3);
+            select new ClausewitzMap(values);
 
-        public static readonly Parser<object> List =
+        static readonly Parser<IClausewitzValue> ClausewitzValue =
+            Parse.Ref(() => Map)
+                .Or(Parse.Ref(() => List))
+                .Or(ClausewitzLiteral);
+
+        static readonly Parser<IEnumerable<IClausewitzValue>> JElements =
+            ClausewitzValue.DelimitedBy(LineEndAndTabs);
+
+        public static readonly Parser<IClausewitzValue> List =
             from bs in BlockStart
+            from le1 in Parse.LineEnd.Optional()
             from leading in Space.Optional()
-            from values in Parse.Ref(() => List.Or(Map).Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol))
-                .DelimitedBy(Space)
+            from values in JElements
             from trailing in Space.Optional()
-            from lt in Parse.LineEnd.Optional()
+            from le2 in Parse.LineEnd.Optional()
             from be in BlockEnd
-            select values.ToList();
+            select new ClausewitzList(values);
     }
 }

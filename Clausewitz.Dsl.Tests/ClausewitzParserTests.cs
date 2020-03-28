@@ -44,15 +44,15 @@ namespace Clausewitz.Dsl.Tests
         {
             var input = "1444.11.11";
             var parsed = ClausewitzParser.Date.End().Parse(input);
-            Assert.AreEqual(DateTime.Parse("1444-11-11"), parsed);
+            Assert.AreEqual(DateTime.Parse("1444-11-11"), parsed.Get());
         }
 
         [TestMethod]
         public void ParsedIsInteger()
         {
-            var input = "1";
+            var input = "-1";
             var parsed = ClausewitzParser.Integer.End().Parse(input);
-            Assert.AreEqual(1, parsed);
+            Assert.AreEqual(-1, parsed.Get());
         }
 
         [TestMethod]
@@ -61,23 +61,11 @@ namespace Clausewitz.Dsl.Tests
 	        var input = @"{
 	1
 	1%
-	1.1 
-	1444.11.11 
-	{ 
-		2 
-
-		2% 
-
-		2.1 
-		
-		1444.11.11 
-
-		
-		abc_def 
-	} 
+	1.1
+	1444.11.11
 }";
-            var parsed = (List<object>) ClausewitzParser.List.End().Parse(input);
-            Assert.AreEqual(1, parsed[0]);
+            var parsed = ClausewitzParser.List.End().Parse(input);
+            Assert.AreEqual(1, parsed);
         }
 
         [TestMethod]
@@ -92,8 +80,8 @@ namespace Clausewitz.Dsl.Tests
 	special_forces = yes
 	marines = yes
 }";
-	        var parsed = (Dictionary<string, object>) ClausewitzParser.Map.End().Parse(input);
-	        Assert.AreEqual("amphibious_armor", parsed["sprite"]);
+	        var parsed = ClausewitzParser.Map.End().Parse(input);
+	        Assert.AreEqual("amphibious_armor", parsed.Pairs["sprite"].ToString());
         }
         
         [TestMethod]
@@ -113,7 +101,7 @@ namespace Clausewitz.Dsl.Tests
         {
             var input = "1%";
             var parsed = ClausewitzParser.Percent.End().Parse(input);
-            Assert.AreEqual(0.01, parsed);
+            Assert.AreEqual(0.01, parsed.Get());
         }
 
         [TestMethod]
@@ -121,7 +109,15 @@ namespace Clausewitz.Dsl.Tests
         {
             var input = "1.1";
             var parsed = ClausewitzParser.Real.End().Parse(input);
-            Assert.AreEqual(1.1, parsed);
+            Assert.AreEqual(1.1, parsed.Get());
+        }
+
+        [TestMethod]
+        public void ParsedIsClausewitzPair()
+        {
+	        var input = "abc = def";
+	        var parsed = ClausewitzParser.ClausewitzPair.End().Parse(input);
+	        Assert.AreEqual("abc", parsed.Key);
         }
     }
 }
