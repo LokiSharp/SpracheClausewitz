@@ -6,21 +6,18 @@ namespace Clausewitz.Dsl.SyntaxTree
     {
         public ClausewitzAssignment()
         {
-            Name = null;
-            Value = null;
-            OperatorType = new OperatorType();
+            AssignmentPair = new Tuple<string, IClausewitzValue, OperatorType>(null, null, new OperatorType());
         }
 
         public ClausewitzAssignment(string name, IClausewitzValue value, OperatorType operatorType)
         {
-            Name = name;
-            Value = value;
-            OperatorType = operatorType;
+            AssignmentPair = new Tuple<string, IClausewitzValue, OperatorType>(name, value, operatorType);
         }
 
-        public string Name { get; set; }
-        public IClausewitzValue Value { get; set; }
-        public OperatorType OperatorType { get; set; }
+        private Tuple<string, IClausewitzValue, OperatorType> AssignmentPair { get; }
+        public string Key => AssignmentPair.Item1;
+        public IClausewitzValue Value => AssignmentPair.Item2;
+        public OperatorType OperatorType => AssignmentPair.Item3;
 
         public IClausewitzValue this[string key]
         {

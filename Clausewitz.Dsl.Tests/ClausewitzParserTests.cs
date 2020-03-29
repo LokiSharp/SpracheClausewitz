@@ -15,7 +15,7 @@ namespace Clausewitz.Dsl.Tests
 	amphibious_armor = {
 		sprite = amphibious_armor
 		map_icon_category = armored
-		priority = 2501
+		priority > 2501
 		ai_priority = 2000
 		active = yes
 		special_forces = yes
@@ -34,8 +34,9 @@ namespace Clausewitz.Dsl.Tests
 		}
 	}
 }";
-            var parsed = (ClausewitzAssignment) ClausewitzParser.Assignment.End().Parse(input);
-            Assert.AreEqual("sub_units", parsed.Name);
+            var parsed = ClausewitzParser.ClausewitzAssignment.End().Parse(input);
+            Assert.AreEqual("sub_units", parsed.Key);
+            Assert.AreEqual("Equal", parsed.OperatorType.ToString());
             Assert.AreEqual("amphibious_armor", parsed.Value["amphibious_armor"]["sprite"].ToString());
         }
 
@@ -63,6 +64,12 @@ namespace Clausewitz.Dsl.Tests
 	1%
 	1.1
 	1444.11.11
+	{
+		1
+		1%
+		1.1
+		1444.11.11
+	}
 }";
             var parsed = (ClausewitzList) ClausewitzParser.List.End().Parse(input);
             Assert.AreEqual("1", parsed.Elements[0].ToString());
@@ -79,9 +86,18 @@ namespace Clausewitz.Dsl.Tests
 	active = yes
 	special_forces = yes
 	marines = yes
+	hello = {
+		sprite = amphibious_armor
+		map_icon_category = armored
+		priority = 2501
+		ai_priority = 2000
+		active = yes
+		special_forces = yes
+		marines = yes
+	}
 }";
             var parsed = (ClausewitzMap) ClausewitzParser.Map.End().Parse(input);
-            Assert.AreEqual("amphibious_armor", parsed.Pairs["sprite"].ToString());
+            Assert.AreEqual("amphibious_armor", parsed["sprite"].ToString());
         }
 
         [TestMethod]
@@ -112,12 +128,12 @@ namespace Clausewitz.Dsl.Tests
             Assert.AreEqual(1.1, parsed.Get());
         }
 
-        [TestMethod]
-        public void ParsedIsClausewitzPair()
-        {
-            var input = "abc = def";
-            var parsed = ClausewitzParser.ClausewitzPair.End().Parse(input);
-            Assert.AreEqual("abc", parsed.Key);
-        }
+        // [TestMethod]
+        // public void ParsedIsClausewitzPair()
+        // {
+        //     var input = "abc = def";
+        //     var parsed = ClausewitzParser.ClausewitzPair.End().Parse(input);
+        //     Assert.AreEqual("abc", parsed.Key);
+        // }
     }
 }
