@@ -34,8 +34,9 @@ namespace Clausewitz.Dsl.Tests
 		}
 	}
 }";
-            var parsed = ClausewitzParser.Assignment.End().Parse(input);
-            Assert.AreEqual("sub_units", parsed.Item1);
+            var parsed = (ClausewitzAssignment) ClausewitzParser.Assignment.End().Parse(input);
+            Assert.AreEqual("sub_units", parsed.Name);
+            Assert.AreEqual("amphibious_armor", parsed.Value["amphibious_armor"]["sprite"].ToString());
         }
 
         [TestMethod]

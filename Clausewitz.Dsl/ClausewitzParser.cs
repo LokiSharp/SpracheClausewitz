@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Clausewitz.Dsl.SyntaxTree;
 using Sprache;
 
@@ -59,7 +58,7 @@ namespace Clausewitz.Dsl
         public static readonly Parser<ClausewitzLiteral> ClausewitzLiteral =
             Symbol.XOr(Integer).XOr(Percent).XOr(Date).XOr(Real).Token();
 
-        public static readonly Parser<Tuple<string, OperatorType, IClausewitzValue>> Assignment =
+        public static readonly Parser<IClausewitzValue> Assignment =
             from name in Symbol
             from op in Operator.Token()
             from value in Parse.Ref(() => Map)
@@ -69,8 +68,7 @@ namespace Clausewitz.Dsl
                 .Or(Real)
                 .Or(Integer)
                 .Or(Symbol).Token()
-            select new Tuple<string, OperatorType, IClausewitzValue>(name.Value, op, value);
-
+            select new ClausewitzAssignment(name.Value, value, op);
 
         public static readonly Parser<KeyValuePair<string, IClausewitzValue>> ClausewitzPair =
             from name in Symbol
