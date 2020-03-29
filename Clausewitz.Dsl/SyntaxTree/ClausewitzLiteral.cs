@@ -67,7 +67,7 @@ namespace Clausewitz.Dsl.SyntaxTree
 
         public override string ToString()
         {
-            return Value;
+            return Get().ToString();
         }
     }
 }

@@ -7,21 +7,21 @@ namespace Clausewitz.Dsl.SyntaxTree
     {
         public ClausewitzMap()
         {
-            AssignmentPairs = new Dictionary<string, ClausewitzAssignment>();
+            AssignmentPairs = new Dictionary<string, IClausewitzValue>();
         }
 
-        public ClausewitzMap(IEnumerable<ClausewitzAssignment> pairs)
+        public ClausewitzMap(IEnumerable<KeyValuePair<string, IClausewitzValue>> pairs)
         {
-            AssignmentPairs = new Dictionary<string, ClausewitzAssignment>();
+            AssignmentPairs = new Dictionary<string, IClausewitzValue>();
             if (pairs != null)
                 foreach (var p in pairs)
-                    AssignmentPairs.Add(p.Key, p);
+                    AssignmentPairs.Add(p.Key, p.Value);
         }
 
         /// <summary>
         ///     All the Clausewitz pair objects
         /// </summary>
-        private Dictionary<string, ClausewitzAssignment> AssignmentPairs { get; }
+        private Dictionary<string, IClausewitzValue> AssignmentPairs { get; }
 
         /// <summary>
         ///     Makes Pairs directly accessable
@@ -32,7 +32,7 @@ namespace Clausewitz.Dsl.SyntaxTree
         {
             get
             {
-                if (AssignmentPairs.ContainsKey(key)) return AssignmentPairs[key].Value;
+                if (AssignmentPairs.ContainsKey(key)) return AssignmentPairs[key];
                 throw new ArgumentException("Key not found: " + key);
             }
             set => throw new NotImplementedException("Cannot access ClausewitzMap by string.");

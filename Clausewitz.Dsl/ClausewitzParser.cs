@@ -56,9 +56,13 @@ namespace Clausewitz.Dsl
             select new ClausewitzLiteral($"{year}-{month}-{day}", LiteralType.Date);
 
         public static readonly Parser<ClausewitzLiteral> ClausewitzLiteral =
-            Symbol.XOr(Integer).XOr(Percent).XOr(Date).XOr(Real).Token();
+            Date.Or(Percent)
+                .Or(Real)
+                .Or(Integer)
+                .Or(Symbol)
+                .Token();
 
-        public static readonly Parser<ClausewitzAssignment> ClausewitzAssignment =
+        public static readonly Parser<KeyValuePair<string, IClausewitzValue>> ClausewitzAssignment =
             from name in Symbol
             from op in Operator.Token()
             from value in Parse.Ref(() => Map)
@@ -67,10 +71,11 @@ namespace Clausewitz.Dsl
                 .Or(Percent)
                 .Or(Real)
                 .Or(Integer)
-                .Or(Symbol).Token()
-            select new ClausewitzAssignment(name.Value, value, op);
+                .Or(Symbol)
+                .Token()
+            select new KeyValuePair<string, IClausewitzValue>(name.Value, value);
 
-        public static readonly Parser<IEnumerable<ClausewitzAssignment>> ClausewitzMembers =
+        public static readonly Parser<IEnumerable<KeyValuePair<string, IClausewitzValue>>> ClausewitzMembers =
             ClausewitzAssignment.DelimitedBy(Space.Token());
 
         public static readonly Parser<IClausewitzValue> Map =
@@ -82,7 +87,6 @@ namespace Clausewitz.Dsl
         private static readonly Parser<IClausewitzValue> ClausewitzValue =
             Parse.Ref(() => Map)
                 .Or(Parse.Ref(() => List))
-                .Or(ClausewitzAssignment)
                 .Or(ClausewitzLiteral);
 
         private static readonly Parser<IEnumerable<IClausewitzValue>> ClausewitzElements =
