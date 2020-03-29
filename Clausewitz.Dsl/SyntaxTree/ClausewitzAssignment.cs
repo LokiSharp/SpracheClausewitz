@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Clausewitz.Dsl.SyntaxTree
 {
@@ -6,18 +7,17 @@ namespace Clausewitz.Dsl.SyntaxTree
     {
         public ClausewitzAssignment()
         {
-            AssignmentPair = new Tuple<string, IClausewitzValue, OperatorType>(null, null, new OperatorType());
+            Pair = new KeyValuePair<string, IClausewitzValue>(null, null);
         }
 
-        public ClausewitzAssignment(string name, IClausewitzValue value, OperatorType operatorType)
+        public ClausewitzAssignment(string name, IClausewitzValue value)
         {
-            AssignmentPair = new Tuple<string, IClausewitzValue, OperatorType>(name, value, operatorType);
+            Pair = new KeyValuePair<string, IClausewitzValue>(name, value);
         }
 
-        private Tuple<string, IClausewitzValue, OperatorType> AssignmentPair { get; }
-        public string Key => AssignmentPair.Item1;
-        public IClausewitzValue Value => AssignmentPair.Item2;
-        public OperatorType OperatorType => AssignmentPair.Item3;
+        private KeyValuePair<string, IClausewitzValue> Pair { get; }
+        public string Key => Pair.Key;
+        public IClausewitzValue Value => Pair.Value;
 
         public IClausewitzValue this[string key]
         {
