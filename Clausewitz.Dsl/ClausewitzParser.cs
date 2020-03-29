@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Clausewitz.Dsl.SyntaxTree;
 using Sprache;
 
@@ -57,9 +56,13 @@ namespace Clausewitz.Dsl
             select new ClausewitzLiteral($"{year}-{month}-{day}", LiteralType.Date);
 
         public static readonly Parser<ClausewitzLiteral> ClausewitzLiteral =
-            Symbol.XOr(Integer).XOr(Percent).XOr(Date).XOr(Real).Token();
+            Date.Or(Percent)
+                .Or(Real)
+                .Or(Integer)
+                .Or(Symbol)
+                .Token();
 
-        public static readonly Parser<Tuple<string, OperatorType, IClausewitzValue>> Assignment =
+        public static readonly Parser<KeyValuePair<string, IClausewitzValue>> ClausewitzAssignment =
             from name in Symbol
             from op in Operator.Token()
             from value in Parse.Ref(() => Map)
@@ -68,18 +71,12 @@ namespace Clausewitz.Dsl
                 .Or(Percent)
                 .Or(Real)
                 .Or(Integer)
-                .Or(Symbol).Token()
-            select new Tuple<string, OperatorType, IClausewitzValue>(name.Value, op, value);
-
-
-        public static readonly Parser<KeyValuePair<string, IClausewitzValue>> ClausewitzPair =
-            from name in Symbol
-            from colon in Parse.Char('=').Token()
-            from val in ClausewitzValue
-            select new KeyValuePair<string, IClausewitzValue>(name.Value, val);
+                .Or(Symbol)
+                .Token()
+            select new KeyValuePair<string, IClausewitzValue>(name.Value, value);
 
         public static readonly Parser<IEnumerable<KeyValuePair<string, IClausewitzValue>>> ClausewitzMembers =
-            ClausewitzPair.DelimitedBy(Space.Token());
+            ClausewitzAssignment.DelimitedBy(Space.Token());
 
         public static readonly Parser<IClausewitzValue> Map =
             from bs in BlockStart.Token()

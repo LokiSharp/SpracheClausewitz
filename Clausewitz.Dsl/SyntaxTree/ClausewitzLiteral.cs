@@ -25,6 +25,18 @@ namespace Clausewitz.Dsl.SyntaxTree
         /// </summary>
         public LiteralType ValueType { get; set; }
 
+        public IClausewitzValue this[string key]
+        {
+            get => throw new NotImplementedException("Cannot access ClausewitzLiteral by string.");
+            set => throw new NotImplementedException("Cannot access ClausewitzLiteral by string.");
+        }
+
+        public IClausewitzValue this[int i]
+        {
+            get => throw new NotImplementedException("Cannot access ClausewitzLiteral by int.");
+            set => throw new NotImplementedException("Cannot access ClausewitzLiteral by int.");
+        }
+
         /// <summary>
         ///     Returns Value cast as the appropriate type.
         /// </summary>
@@ -55,7 +67,7 @@ namespace Clausewitz.Dsl.SyntaxTree
 
         public override string ToString()
         {
-            return Value;
+            return Get().ToString();
         }
     }
 }
