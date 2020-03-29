@@ -1,5 +1,0 @@
-details "Personal Details"
-[
-  name	"First Name"
-  age	"Age"
-]

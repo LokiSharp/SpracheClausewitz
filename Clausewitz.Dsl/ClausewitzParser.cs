@@ -25,8 +25,7 @@ namespace Clausewitz.Dsl
                 .Or(Parse.String("=").Return(OperatorType.Equal));
 
         public static readonly Parser<object> Comment =
-            from op in Parse.String("#")
-            from space in Space.Optional()
+            from op in Parse.String("#").Token()
             from comment in Parse.CharExcept('\n').Many().Text()
             select comment;
 
