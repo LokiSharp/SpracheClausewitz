@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest ]
-        dotnet: [ 3.1.100, 3.1.101 ]
+        dotnet: [ 3.1.201 ]
 
     steps:
       - name: Checkout
@@ -30,5 +30,5 @@ jobs:
       - name: Update Artifact
         uses: actions/upload-artifact@v1
         with:
-          name: SpracheDemo-${{ matrix.os }}-${{ matrix.dotnet }}
-          path: SpracheDemo.Dsl/bin/Release/netcoreapp3.1
+          name: Clausewitz.Dsl-${{ matrix.os }}-${{ matrix.dotnet }}
+          path: Clausewitz.Dsl/bin/Release/netcoreapp3.1
