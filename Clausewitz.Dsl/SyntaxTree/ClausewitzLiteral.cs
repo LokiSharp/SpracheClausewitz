@@ -4,16 +4,6 @@ namespace Clausewitz.Dsl.SyntaxTree
 {
     public class ClausewitzLiteral : IClausewitzValue
     {
-        /// <summary>
-        /// A string representation of the value
-        /// </summary>
-        public string Value { get; set; }
-
-        /// <summary>
-        /// The type the value is
-        /// </summary>
-        public LiteralType ValueType { get; set; }
-
         public ClausewitzLiteral(LiteralType type)
         {
             ValueType = type;
@@ -26,7 +16,17 @@ namespace Clausewitz.Dsl.SyntaxTree
         }
 
         /// <summary>
-        /// Returns Value cast as the appropriate type.
+        ///     A string representation of the value
+        /// </summary>
+        public string Value { get; set; }
+
+        /// <summary>
+        ///     The type the value is
+        /// </summary>
+        public LiteralType ValueType { get; set; }
+
+        /// <summary>
+        ///     Returns Value cast as the appropriate type.
         /// </summary>
         /// <returns></returns>
         public object Get()

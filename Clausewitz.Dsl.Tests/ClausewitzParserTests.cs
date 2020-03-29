@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Clausewitz.Dsl.SyntaxTree;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sprache;
@@ -36,7 +35,7 @@ namespace Clausewitz.Dsl.Tests
 	}
 }";
             var parsed = ClausewitzParser.Assignment.End().Parse(input);
-            Assert.AreEqual("Hello", parsed);
+            Assert.AreEqual("sub_units", parsed.Item1);
         }
 
         [TestMethod]
@@ -58,20 +57,20 @@ namespace Clausewitz.Dsl.Tests
         [TestMethod]
         public void ParsedIsList()
         {
-	        var input = @"{
+            var input = @"{
 	1
 	1%
 	1.1
 	1444.11.11
 }";
-            var parsed = ClausewitzParser.List.End().Parse(input);
-            Assert.AreEqual(1, parsed);
+            var parsed = (ClausewitzList) ClausewitzParser.List.End().Parse(input);
+            Assert.AreEqual("1", parsed.Elements[0].ToString());
         }
 
         [TestMethod]
         public void ParsedIsMap()
         {
-	        var input = @"{
+            var input = @"{
 	sprite = amphibious_armor
 	map_icon_category = armored
 	priority = 2501
@@ -80,10 +79,10 @@ namespace Clausewitz.Dsl.Tests
 	special_forces = yes
 	marines = yes
 }";
-	        var parsed = ClausewitzParser.Map.End().Parse(input);
-	        Assert.AreEqual("amphibious_armor", parsed.Pairs["sprite"].ToString());
+            var parsed = (ClausewitzMap) ClausewitzParser.Map.End().Parse(input);
+            Assert.AreEqual("amphibious_armor", parsed.Pairs["sprite"].ToString());
         }
-        
+
         [TestMethod]
         public void ParsedIsOperator()
         {
@@ -115,9 +114,9 @@ namespace Clausewitz.Dsl.Tests
         [TestMethod]
         public void ParsedIsClausewitzPair()
         {
-	        var input = "abc = def";
-	        var parsed = ClausewitzParser.ClausewitzPair.End().Parse(input);
-	        Assert.AreEqual("abc", parsed.Key);
+            var input = "abc = def";
+            var parsed = ClausewitzParser.ClausewitzPair.End().Parse(input);
+            Assert.AreEqual("abc", parsed.Key);
         }
     }
 }

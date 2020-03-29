@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Clausewitz.Dsl.SyntaxTree;
 using Sprache;
 
@@ -12,13 +11,6 @@ namespace Clausewitz.Dsl
         private static readonly Parser<string> Space = Parse.WhiteSpace.Many().Text();
         private static readonly Parser<char> BlockStart = Parse.Char('{');
         private static readonly Parser<char> BlockEnd = Parse.Char('}');
-        private static readonly Parser<string> Tabs = Parse.Char('\t').Many().Text();
-
-        private static readonly Parser<string> LineEndAndTabs =
-            from d in Space.Optional()
-            from le in Parse.LineEnd.Optional()
-            from tabs in Tabs.Optional()
-            select "";
 
         private static readonly Parser<ClausewitzLiteral> Symbol =
             from symbol in Parse.Identifier(Parse.Letter, Parse.LetterOrDigit.Or(Parse.Char('_')))
@@ -66,58 +58,48 @@ namespace Clausewitz.Dsl
             select new ClausewitzLiteral($"{year}-{month}-{day}", LiteralType.Date);
 
         public static readonly Parser<ClausewitzLiteral> ClausewitzLiteral =
-            Symbol.Or(Integer).Or(Percent).Or(Date).Or(Real);
+            Symbol.XOr(Integer).XOr(Percent).XOr(Date).XOr(Real).Token();
 
-        public static readonly Parser<Tuple<ClausewitzLiteral, OperatorType, IClausewitzValue>> Assignment =
-            from lt1 in Parse.LineEnd.Optional()
-            from tb1 in Tabs.Optional()
+        public static readonly Parser<Tuple<string, OperatorType, IClausewitzValue>> Assignment =
             from name in Symbol
-            from leading in Space.Optional()
-            from op in Operator
-            from trailing in Space.Optional()
-            from value in Map.Or(List).Or(Date).Or(Percent).Or(Real).Or(Integer).Or(Symbol)
-            from lt2 in Parse.LineEnd.Optional()
-            from tb2 in Tabs.Optional()
-            select new Tuple<ClausewitzLiteral, OperatorType, IClausewitzValue>(name, op, value);
+            from op in Operator.Token()
+            from value in Parse.Ref(() => Map)
+                .Or(Parse.Ref(() => List))
+                .Or(Date)
+                .Or(Percent)
+                .Or(Real)
+                .Or(Integer)
+                .Or(Symbol).Token()
+            select new Tuple<string, OperatorType, IClausewitzValue>(name.Value, op, value);
 
 
         public static readonly Parser<KeyValuePair<string, IClausewitzValue>> ClausewitzPair =
             from name in Symbol
-            from leading in Space.Optional()
             from colon in Parse.Char('=').Token()
-            from trailing in Space.Optional()
             from val in ClausewitzValue
             select new KeyValuePair<string, IClausewitzValue>(name.Value, val);
 
         public static readonly Parser<IEnumerable<KeyValuePair<string, IClausewitzValue>>> ClausewitzMembers =
-            ClausewitzPair.DelimitedBy(LineEndAndTabs);
+            ClausewitzPair.DelimitedBy(Space.Token());
 
-        public static readonly Parser<ClausewitzMap> Map =
-            from bs in BlockStart
-            from le1 in Parse.LineEnd.Optional()
-            from leading in Space.Optional()
+        public static readonly Parser<IClausewitzValue> Map =
+            from bs in BlockStart.Token()
             from values in ClausewitzMembers
-            from trailing in Space.Optional()
-            from le2 in Parse.LineEnd.Optional()
-            from be in BlockEnd
+            from be in BlockEnd.Token()
             select new ClausewitzMap(values);
 
-        static readonly Parser<IClausewitzValue> ClausewitzValue =
+        private static readonly Parser<IClausewitzValue> ClausewitzValue =
             Parse.Ref(() => Map)
                 .Or(Parse.Ref(() => List))
                 .Or(ClausewitzLiteral);
 
-        static readonly Parser<IEnumerable<IClausewitzValue>> JElements =
-            ClausewitzValue.DelimitedBy(LineEndAndTabs);
+        private static readonly Parser<IEnumerable<IClausewitzValue>> ClausewitzElements =
+            ClausewitzValue.DelimitedBy(Space.Token());
 
         public static readonly Parser<IClausewitzValue> List =
-            from bs in BlockStart
-            from le1 in Parse.LineEnd.Optional()
-            from leading in Space.Optional()
-            from values in JElements
-            from trailing in Space.Optional()
-            from le2 in Parse.LineEnd.Optional()
-            from be in BlockEnd
+            from bs in BlockStart.Token()
+            from values in ClausewitzElements
+            from be in BlockEnd.Token()
             select new ClausewitzList(values);
     }
 }
