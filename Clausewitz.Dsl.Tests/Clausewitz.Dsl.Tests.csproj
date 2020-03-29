@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Clausewitz.Dsl\Clausewitz.Dsl.csproj"/>
+        <ProjectReference Include="..\Clausewitz.Dsl\Clausewitz.Dsl.csproj" />
     </ItemGroup>
 
 </Project>
