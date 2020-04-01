@@ -12,9 +12,19 @@ namespace Clausewitz.Dsl
         private static readonly Parser<char> BlockStart = Parse.Char('{');
         private static readonly Parser<char> BlockEnd = Parse.Char('}');
 
-        private static readonly Parser<ClausewitzLiteral> Symbol =
+        static readonly Parser<char> ClausewitzChar = Parse.AnyChar.Except(Parse.Char('"').Or(Parse.Char('#')));
+        
+        private static readonly Parser<ClausewitzLiteral> QuoteSymbol =
+            from qs in DoubleQuote
+            from symbol in ClausewitzChar.Many().Text()
+            from qe in DoubleQuote
+            select new ClausewitzLiteral(symbol, LiteralType.Symbol);
+
+        private static readonly Parser<ClausewitzLiteral> NonSymbol =
             from symbol in Parse.Identifier(Parse.Letter, Parse.LetterOrDigit.Or(Parse.Char('_')))
             select new ClausewitzLiteral(symbol, LiteralType.Symbol);
+
+        private static readonly Parser<ClausewitzLiteral> Symbol = QuoteSymbol.Or(NonSymbol);
 
         public static readonly Parser<OperatorType> Operator =
             Parse.String("<>").Return(OperatorType.InEqual)
@@ -48,16 +58,19 @@ namespace Clausewitz.Dsl
             select new ClausewitzLiteral((minus.IsDefined ? minus.Get() : "") + $"{integers}.{decimals}",
                 LiteralType.Real);
 
-        public static readonly Parser<ClausewitzLiteral> Date =
-            from year in Parse.Number
-            from aDot in Parse.Char('.')
-            from month in Parse.Number
-            from bDot in Parse.Char('.')
-            from day in Parse.Number
-            select new ClausewitzLiteral($"{year}-{month}-{day}", LiteralType.Date);
+        // public static readonly Parser<ClausewitzLiteral> Date =
+        //     from qs in DoubleQuote
+        //     from year in Parse.Number
+        //     from aDot in Parse.Char('.')
+        //     from month in Parse.Number
+        //     from bDot in Parse.Char('.')
+        //     from day in Parse.Number
+        //     from qe in DoubleQuote
+        //     select new ClausewitzLiteral($"{year}-{month}-{day}", LiteralType.Date);
 
         public static readonly Parser<ClausewitzLiteral> ClausewitzLiteral =
-            Date.Or(Percent)
+            Percent
+                // .Or(Date)
                 .Or(Real)
                 .Or(Integer)
                 .Or(Symbol)
@@ -69,7 +82,7 @@ namespace Clausewitz.Dsl
             from value in
                 Parse.Ref(() => Map)
                     .Or(Parse.Ref(() => List))
-                    .Or(Date)
+                    // .Or(Date)
                     .Or(Percent)
                     .Or(Real)
                     .Or(Integer)
@@ -82,9 +95,9 @@ namespace Clausewitz.Dsl
 
         public static readonly Parser<IClausewitzValue> Map =
             from bs in BlockStart.Token().CommitToken()
-            from values in ClausewitzMembers
+            from members in ClausewitzMembers.Optional()
             from be in BlockEnd.Token().CommitToken()
-            select new ClausewitzMap(values);
+            select new ClausewitzMap(members.IsDefined ? members.Get() : null);
 
         private static readonly Parser<IClausewitzValue> ClausewitzValue =
             Parse.Ref(() => Map)
@@ -96,9 +109,9 @@ namespace Clausewitz.Dsl
 
         public static readonly Parser<IClausewitzValue> List =
             from bs in BlockStart.Token().CommitToken()
-            from values in ClausewitzElements
+            from elements in ClausewitzElements.Optional()
             from be in BlockEnd.Token().CommitToken()
-            select new ClausewitzList(values);
+            select new ClausewitzList(elements.IsDefined ? elements.Get() : null);
 
         public static readonly Parser<IClausewitzValue> ClausewitzDoc =
             from values in ClausewitzMembers.Token().CommitToken()

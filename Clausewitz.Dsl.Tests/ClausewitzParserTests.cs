@@ -52,13 +52,13 @@ namespace Clausewitz.Dsl.Tests
             Assert.AreEqual("category_army", parsed.Value["amphibious_armor"]["categories"][3].ToString());
         }
 
-        [TestMethod]
-        public void ParsedIsDate()
-        {
-            var input = "1444.11.11";
-            var parsed = ClausewitzParser.Date.End().Parse(input);
-            Assert.AreEqual(DateTime.Parse("1444-11-11").ToString(CultureInfo.CurrentCulture), parsed.ToString());
-        }
+        // [TestMethod]
+        // public void ParsedIsDate()
+        // {
+        //     var input = "1444.11.11";
+        //     var parsed = ClausewitzParser.Date.End().Parse(input);
+        //     Assert.AreEqual(DateTime.Parse("1444-11-11").ToString(CultureInfo.CurrentCulture), parsed.ToString());
+        // }
 
         [TestMethod]
         public void ParsedIsInteger()
@@ -75,23 +75,23 @@ namespace Clausewitz.Dsl.Tests
 	1
 	1%
 	1.1
-	1444.11.11
+	""1444.11.11""
 	{
 		1
 		1%
 		1.1
-		1444.11.11
+		""1444.11.11""
 	}
 }";
             var parsed = (ClausewitzList) ClausewitzParser.List.End().Parse(input);
             Assert.AreEqual("1", parsed[0].ToString());
             Assert.AreEqual("0.01", parsed[1].ToString());
             Assert.AreEqual("1.1", parsed[2].ToString());
-            Assert.AreEqual(DateTime.Parse("1444-11-11").ToString(CultureInfo.CurrentCulture), parsed[3].ToString());
+            Assert.AreEqual("1444.11.11", parsed[3].ToString());
             Assert.AreEqual("1", parsed[4][0].ToString());
             Assert.AreEqual("0.01", parsed[4][1].ToString());
             Assert.AreEqual("1.1", parsed[4][2].ToString());
-            Assert.AreEqual(DateTime.Parse("1444-11-11").ToString(CultureInfo.CurrentCulture), parsed[4][3].ToString());
+            Assert.AreEqual("1444.11.11", parsed[4][3].ToString());
         }
 
         [TestMethod]
